@@ -25,7 +25,7 @@ export class UsersService {
 
   findAll() {
     const usersWithoutPassword = this.users.map(
-      ({ password: _, ...rest }) => rest,
+      ({ password: _, ...result }) => result,
     );
     return usersWithoutPassword;
   }
