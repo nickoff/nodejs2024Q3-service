@@ -11,7 +11,7 @@ export class ArtistsService {
 
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly trackService: TracksService,
+    private readonly tracksService: TracksService,
   ) {}
   create(createArtistDto: CreateArtistDto) {
     const artist = {
@@ -73,13 +73,13 @@ export class ArtistsService {
   }
 
   private updateTracks(artistId: string) {
-    const trackIds = this.trackService
+    const trackIds = this.tracksService
       .findAll()
       .filter((track) => track.artistId === artistId)
       .map((track) => track.id);
     trackIds.forEach((trackId) => {
-      const track = this.trackService.findOne(trackId);
-      this.trackService.update(trackId, {
+      const track = this.tracksService.findOne(trackId);
+      this.tracksService.update(trackId, {
         ...track,
         artistId: null,
       });
