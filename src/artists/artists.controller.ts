@@ -122,9 +122,6 @@ export class ArtistsController {
     status: 204,
     description: 'Request is valid. Record is deleted.',
     type: Boolean,
-    schema: {
-      $ref: getSchemaPath('true'),
-    },
   })
   @ApiResponse({
     status: 400,
