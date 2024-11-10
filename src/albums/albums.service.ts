@@ -57,7 +57,7 @@ export class AlbumsService {
       ...updateAlbumDto,
     };
     this.databaseService.updateAlbums(albums);
-    return album;
+    return albums[index];
   }
 
   remove(id: string) {
