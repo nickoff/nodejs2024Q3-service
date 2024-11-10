@@ -9,14 +9,14 @@ import {
 export class CreateAlbumDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  readonly name: string;
 
   @IsNumber()
   @IsNotEmpty()
-  year: number;
+  readonly year: number;
 
   @IsOptional()
   @IsString()
   @IsUUID()
-  artistId: string | null;
+  readonly artistId: string | null;
 }

@@ -5,12 +5,12 @@ import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 export class UpdateAlbumDto extends PartialType(CreateAlbumDto) {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  readonly name: string;
 
   @IsNumber()
   @IsNotEmpty()
-  year: number;
+  readonly year: number;
 
   @IsString()
-  artistId: string | null;
+  readonly artistId: string | null;
 }
