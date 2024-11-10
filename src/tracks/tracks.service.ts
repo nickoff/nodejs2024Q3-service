@@ -54,7 +54,7 @@ export class TracksService {
       ...updateTrackDto,
     };
     this.databaseService.updateTracks(tracks);
-    return track;
+    return tracks[index];
   }
 
   remove(id: string) {
