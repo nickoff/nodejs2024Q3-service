@@ -1,0 +1,43 @@
+networks:
+  net-hls:
+    driver: bridge
+
+volumes:
+  database-postgres:
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: hls-postgres
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+    volumes:
+      - database-postgres:/var/lib/postgresql/data
+    networks:
+      - net-hls
+    command: 
+      - postgres
+
+  app:
+    container_name: hls-api-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${PORT}:${PORT}
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - net-hls
+    depends_on:
+      - postgres
+    volumes:
+      - ./src:/app/src
