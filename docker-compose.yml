@@ -14,18 +14,16 @@ services:
     restart: always
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-      - POSTGRES_HOST=${POSTGRES_HOST}
+    env_file:
+      - .env
     volumes:
       - database-postgres:/var/lib/postgresql/data
     networks:
       - net-hls
+    command: ['-c', 'logging_collector=on']
 
   app:
-    container_name: hls-api-service
+    container_name: hls-api
     env_file:
       - .env
     build:
