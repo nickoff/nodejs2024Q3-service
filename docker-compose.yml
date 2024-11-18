@@ -1,0 +1,40 @@
+networks:
+  net-hls:
+    driver: bridge
+
+volumes:
+  database-postgres:
+
+services:
+  postgres:
+    container_name: hls-postgres
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    restart: always
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    env_file:
+      - .env
+    volumes:
+      - database-postgres:/var/lib/postgresql/data
+    networks:
+      - net-hls
+    command: ['-c', 'logging_collector=on']
+
+  app:
+    container_name: hls-api
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${PORT}:${PORT}
+    restart: always
+    networks:
+      - net-hls
+    depends_on:
+      - postgres
+    volumes:
+      - ./src:/app/src
