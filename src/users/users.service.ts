@@ -1,40 +1,39 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { DatabaseService } from 'src/database/database.service';
 import { v4 as uuid4, validate } from 'uuid';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  private users = this.databaseService.getUsers();
-
-  constructor(private readonly databaseService: DatabaseService) {}
-  create(createUserDto: CreateUserDto) {
-    const user = {
-      ...createUserDto,
-      id: uuid4(),
-      version: 1,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-    this.users.push(user);
-    this.databaseService.updateUser(this.users);
+  constructor(private readonly prisma: PrismaService) {}
+  async create(createUserDto: CreateUserDto) {
+    const user = await this.prisma.user.create({ data: createUserDto });
     const { password: _, ...result } = user;
-    return result;
+    return {
+      ...result,
+      createdAt: new Date(user.createdAt).getTime(),
+      updatedAt: new Date(user.updatedAt).getTime(),
+    };
   }
 
-  findAll() {
-    const usersWithoutPassword = this.users.map(
-      ({ password: _, ...result }) => result,
-    );
-    return usersWithoutPassword;
+  async findAll() {
+    const users = await this.prisma.user.findMany();
+    return users.map((user) => {
+      const { password: _, ...result } = user;
+      return {
+        ...result,
+        createdAt: new Date(user.createdAt).getTime(),
+        updatedAt: new Date(user.updatedAt).getTime(),
+      };
+    });
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const user = this.users.find((user) => user.id === id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
     }
@@ -42,11 +41,11 @@ export class UsersService {
     return result;
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const user = this.users.find((user) => user.id === id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
     }
@@ -56,26 +55,29 @@ export class UsersService {
         HttpStatus.FORBIDDEN,
       );
     }
-    const index = this.users.findIndex((user) => user.id === id);
-    this.users[index].password = updateUserDto.newPassword;
-    this.users[index].updatedAt = Date.now();
-    this.users[index].version += 1;
-    this.databaseService.updateUser(this.users);
-    const { password: _, ...result } = this.users[index];
-    return result;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: { password: updateUserDto.newPassword, version: user.version + 1 },
+    });
+
+    const { password: _, ...result } = updatedUser;
+    return {
+      ...result,
+      createdAt: new Date(updatedUser.createdAt).getTime(),
+      updatedAt: new Date(updatedUser.updatedAt).getTime(),
+    };
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const user = this.users.find((user) => user.id === id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
     }
-    const index = this.users.findIndex((user) => user.id === id);
-    this.users.splice(index, 1);
-    this.databaseService.updateUser(this.users);
+    await this.prisma.user.delete({ where: { id } });
     return { deleted: true };
   }
 }
